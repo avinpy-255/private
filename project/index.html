@@ -174,6 +174,14 @@
       position: relative;
       overflow: hidden;
     }
+    
+    .btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        box-shadow: none;
+        transform: none;
+        border-color: var(--glass);
+    }
 
     .btn::before {
       content: '';
@@ -190,7 +198,7 @@
       left: 100%;
     }
 
-    .btn:hover {
+    .btn:hover:not(:disabled) {
       transform: translateY(-2px);
       box-shadow: var(--shadow-md);
       border-color: var(--primary);
@@ -203,8 +211,14 @@
       box-shadow: var(--shadow-glow);
       border: none;
     }
+    
+    .btn.primary:disabled {
+        background: linear-gradient(135deg, rgba(0,209,255,0.4), rgba(0,153,204,0.4));
+        color: rgba(10,18,32,0.6);
+        box-shadow: none;
+    }
 
-    .btn.primary:hover {
+    .btn.primary:hover:not(:disabled) {
       background: linear-gradient(135deg, var(--primary-hover) 0%, #0088bb 100%);
       box-shadow: 0 8px 32px rgba(0,209,255,0.3);
     }
@@ -528,6 +542,18 @@
       border-color: rgba(0,209,255,0.3);
       box-shadow: var(--shadow-md);
     }
+    
+    .item-image {
+      width: 100%;
+      height: 120px;
+      object-fit: cover;
+      border-radius: 8px;
+      margin-bottom: 12px;
+    }
+    
+    .item p {
+      margin: 4px 0;
+    }
 
     /* Section Headers */
     h2 {
@@ -610,6 +636,17 @@
       to {
         transform: translateX(-50%) translateY(0);
         opacity: 1;
+      }
+    }
+    
+    @keyframes toastSlideOut {
+      from {
+        transform: translateX(-50%) translateY(0);
+        opacity: 1;
+      }
+      to {
+        transform: translateX(-50%) translateY(100%);
+        opacity: 0;
       }
     }
 
@@ -743,559 +780,4 @@
       <div class="grid" style="grid-template-columns:1fr auto; align-items:center; gap: 24px;">
         <h2>Try it live</h2>
         <div style="justify-self:end; display:flex; gap:12px; align-items:center; flex-wrap: wrap;">
-          <span style="color:var(--muted); font-weight: 500;">Mode:</span>
-          <select id="mode" onchange="switchMode(this.value)">
-            <option value="demo">Demo (free data)</option>
-            <option value="backend">Backend API</option>
-          </select>
-          <input id="baseUrl" placeholder="http://localhost:7556" style="max-width:200px"/>
-          <button class="btn" onclick="saveBaseUrl()">
-            <i class="fa-solid fa-save"></i> Save
-          </button>
-        </div>
-      </div>
-
-      <div class="tabs">
-        <div id="t-flights" class="tab active" onclick="openTab('flights')">
-          <i class="fa-solid fa-plane"></i> Flights
-        </div>
-        <div id="t-hotels" class="tab" onclick="openTab('hotels')">
-          <i class="fa-solid fa-hotel"></i> Hotels
-        </div>
-        <div id="t-trains" class="tab" onclick="openTab('trains')">
-          <i class="fa-solid fa-train"></i> Trains
-        </div>
-      </div>
-
-      <div id="panel-flights" class="card">
-        <div class="grid g3">
-          <div>
-            <label><i class="fa-solid fa-plane-departure"></i> From</label>
-            <input id="f-from" placeholder="DEL" value="DEL"/>
-          </div>
-          <div>
-            <label><i class="fa-solid fa-plane-arrival"></i> To</label>
-            <input id="f-to" placeholder="BOM" value="BOM"/>
-          </div>
-          <div>
-            <label><i class="fa-solid fa-calendar"></i> Date</label>
-            <input id="f-date" type="date"/>
-          </div>
-        </div>
-        <div style="margin-top:20px">
-          <button class="btn primary" onclick="searchFlights()" id="search-flights-btn">
-            <i class="fa-solid fa-search"></i> Search flights
-          </button>
-        </div>
-        <div id="results-flights" class="list" style="margin-top:24px"></div>
-      </div>
-
-      <div id="panel-hotels" class="card" style="display:none">
-        <div class="grid g3">
-          <div>
-            <label><i class="fa-solid fa-map-marker-alt"></i> City</label>
-            <input id="h-city" placeholder="Mumbai" value="Mumbai"/>
-          </div>
-          <div>
-            <label><i class="fa-solid fa-calendar-check"></i> Check-in</label>
-            <input id="h-in" type="date"/>
-          </div>
-          <div>
-            <label><i class="fa-solid fa-calendar-times"></i> Check-out</label>
-            <input id="h-out" type="date"/>
-          </div>
-        </div>
-        <div style="margin-top:20px">
-          <button class="btn primary" onclick="searchHotels()" id="search-hotels-btn">
-            <i class="fa-solid fa-search"></i> Search hotels
-          </button>
-        </div>
-        <div id="results-hotels" class="list" style="margin-top:24px"></div>
-      </div>
-
-      <div id="panel-trains" class="card" style="display:none">
-        <div class="grid g3">
-          <div>
-            <label><i class="fa-solid fa-train"></i> From</label>
-            <input id="t-from" placeholder="NDLS" value="NDLS"/>
-          </div>
-          <div>
-            <label><i class="fa-solid fa-train"></i> To</label>
-            <input id="t-to" placeholder="BCT" value="BCT"/>
-          </div>
-          <div>
-            <label><i class="fa-solid fa-calendar"></i> Date</label>
-            <input id="t-date" type="date"/>
-          </div>
-        </div>
-        <div style="margin-top:20px">
-          <button class="btn primary" onclick="searchTrains()" id="search-trains-btn">
-            <i class="fa-solid fa-search"></i> Search trains
-          </button>
-        </div>
-        <div id="results-trains" class="list" style="margin-top:24px"></div>
-      </div>
-    </section>
-
-    <section id="admin" style="margin-top: 64px;">
-      <div class="approval-dev-grid">
-        <div class="card">
-          <h3><i class="fa-solid fa-tasks" style="color: var(--accent);"></i> Pending approvals</h3>
-          <div id="approvals" class="list" style="margin-top: 16px;"></div>
-        </div>
-        <div class="card">
-          <h3><i class="fa-solid fa-code" style="color: var(--secondary);"></i> Developer API</h3>
-          <p class="subtitle">Connect programmatically using your API key for seamless integration.</p>
-          <div class="grid" style="margin-top: 16px;">
-            <div class="subtitle" style="background: rgba(0,209,255,0.1); padding: 12px; border-radius: 8px; border-left: 3px solid var(--primary);">
-              <i class="fa-solid fa-info-circle"></i> <strong>Backend Info:</strong> Login as admin@example.com / admin123 to get full access. API keys are provided during login.
-            </div>
-            <label><i class="fa-solid fa-key"></i> JWT Token (optional for full access)</label>
-            <input id="jwt" placeholder="Paste your Bearer token"/>
-            <label><i class="fa-solid fa-shield-alt"></i> API Key (read-only access)</label>
-            <input id="apikey" placeholder="Paste your X-API-Key"/>
-            <button class="btn" onclick="generateKey()">
-              <i class="fa-solid fa-info"></i> API Key Info
-            </button>
-            <div class="card" style="overflow:auto; background: rgba(0,0,0,0.3);">
-              <code id="curl" style="white-space:pre; font-size:12px; color: var(--secondary);"></code>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <p class="footer">
-      <i class="fa-solid fa-heart" style="color: var(--danger);"></i>
-      Built with modern web technologies • Images from Pexels • Demo data from public APIs
-    </p>
-  </div>
-
-  <dialog id="login-modal">
-    <div class="card" style="padding:32px">
-      <h3><i class="fa-solid fa-sign-in-alt" style="color: var(--primary);"></i> Login to Backend</h3>
-      <div class="grid" style="margin-top: 24px;">
-        <label><i class="fa-solid fa-envelope"></i> Email</label>
-        <input id="em" value="admin@example.com"/>
-        <label><i class="fa-solid fa-lock"></i> Password</label>
-        <input id="pw" type="password" value="admin123"/>
-        <div style="display:flex; gap:12px; justify-content:flex-end; margin-top: 20px;">
-          <button class="btn" onclick="document.getElementById('login-modal').close()">
-            <i class="fa-solid fa-times"></i> Cancel
-          </button>
-          <button class="btn primary" onclick="login()">
-            <i class="fa-solid fa-sign-in-alt"></i> Login
-          </button>
-        </div>
-        <div id="login-status" class="subtitle" style="margin-top: 12px; text-align: center;"></div>
-      </div>
-    </div>
-  </dialog>
-
-  <script>
-    // ========================= Config & State =========================
-    const DEFAULT_BASE = 'http://localhost:7556';
-    const state = {
-      mode: 'demo',
-      base: DEFAULT_BASE,
-      jwt: '',
-      apikey: ''
-    };
-
-    // Initialize state from localStorage safely
-    try {
-      state.mode = localStorage.getItem('mode') || 'demo';
-      state.base = localStorage.getItem('base') || DEFAULT_BASE;
-      state.jwt = localStorage.getItem('jwt') || '';
-      state.apikey = localStorage.getItem('apikey') || '';
-    } catch(e) {
-      console.warn('localStorage not available, using defaults');
-    }
-
-    // Set form values
-    const modeSelect = document.getElementById('mode');
-    const baseUrlInput = document.getElementById('baseUrl');
-    const jwtInput = document.getElementById('jwt');
-    const apikeyInput = document.getElementById('apikey');
-
-    if (modeSelect) modeSelect.value = state.mode;
-    if (baseUrlInput) baseUrlInput.value = state.base;
-    if (jwtInput) jwtInput.value = state.jwt;
-    if (apikeyInput) apikeyInput.value = state.apikey;
-
-    // Set default dates to tomorrow
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    const dateStr = tomorrow.toISOString().split('T')[0];
-
-    const fDateInput = document.getElementById('f-date');
-    const hInInput = document.getElementById('h-in');
-    const tDateInput = document.getElementById('t-date');
-
-    if (fDateInput) fDateInput.value = dateStr;
-    if (hInInput) hInInput.value = dateStr;
-    if (tDateInput) tDateInput.value = dateStr;
-
-    const dayAfter = new Date();
-    dayAfter.setDate(dayAfter.getDate() + 2);
-    const hOutInput = document.getElementById('h-out');
-    if (hOutInput) hOutInput.value = dayAfter.toISOString().split('T')[0];
-
-    // ========================= Utility Functions =========================
-    function scrollToId(id){
-      const element = document.getElementById(id);
-      if (element) {
-        element.scrollIntoView({behavior:'smooth', block: 'start'});
-      }
-    }
-
-    function switchMode(val){
-      state.mode = val;
-      try {
-        localStorage.setItem('mode', val);
-      } catch(e) {
-        console.warn('Cannot save to localStorage');
-      }
-      toast(`Mode switched to: ${val}`)
-    }
-
-    function saveBaseUrl(){
-      const baseUrlInput = document.getElementById('baseUrl');
-      state.base = (baseUrlInput ? baseUrlInput.value : '') || DEFAULT_BASE;
-      try {
-        localStorage.setItem('base', state.base);
-      } catch(e) {
-        console.warn('Cannot save to localStorage');
-      }
-      toast('API base URL saved')
-    }
-
-    function authHeaders(extra={}){
-      const h = {...extra};
-      if(state.jwt) h['Authorization'] = 'Bearer ' + state.jwt;
-      if(state.apikey) h['X-API-Key'] = state.apikey;
-      return h;
-    }
-
-    function toast(msg){
-      const el = document.createElement('div');
-      el.textContent = msg;
-      el.className = 'toast';
-      document.body.appendChild(el);
-      setTimeout(()=> {
-        el.style.animation = 'toastSlideOut 0.3s ease-in forwards';
-        setTimeout(() => el.remove(), 300);
-      }, 2000);
-    }
-
-    function openTab(name){
-      ['flights','hotels','trains'].forEach(t=>{
-        const panel = document.getElementById('panel-'+t);
-        const tab = document.getElementById('t-'+t);
-        if (panel) panel.style.display = (t===name?'block':'none');
-        if (tab) tab.classList.toggle('active', t===name);
-      })
-    }
-
-    // Add loading state to buttons
-    function setLoading(buttonId, loading = true) {
-      const btn = document.getElementById(buttonId);
-      if (btn) {
-        if (loading) {
-          btn.disabled = true;
-          btn.innerHTML = '<div class="loading"></div> Searching...';
-        } else {
-          btn.disabled = false;
-          // Restore original content based on button type
-          if (buttonId.includes('flights')) {
-            btn.innerHTML = '<i class="fa-solid fa-search"></i> Search flights';
-          } else if (buttonId.includes('hotels')) {
-            btn.innerHTML = '<i class="fa-solid fa-search"></i> Search hotels';
-          } else if (buttonId.includes('trains')) {
-            btn.innerHTML = '<i class="fa-solid fa-search"></i> Search trains';
-          }
-        }
-      }
-    }
-
-    // ========================= Demo Generators (free) =========================
-    function rand(min,max){ return Math.floor(Math.random()*(max-min+1))+min }
-    function currency(){ return ['INR','USD','EUR'][rand(0,2)] }
-
-    function demoFlights(from,to){
-      const names = ['IndiGo','SpiceJet','Air India','Vistara','GoAir'];
-      const aircraft = ['A320', 'B737', 'A321', 'B787', 'A350'];
-      return Array.from({length:6}).map((_,i)=>({
-        id: 'F' + Date.now() + i,
-        provider: names[rand(0,names.length-1)],
-        aircraft: aircraft[rand(0,aircraft.length-1)],
-        from, to,
-        depart: new Date(Date.now()+rand(1,7)*86400000).toISOString(),
-        duration: rand(60,180)+'m',
-        price: rand(2500,12000),
-        currency: currency(),
-        img: 'https://images.pexels.com/photos/358319/pexels-photo-358319.jpeg?auto=compress&cs=tinysrgb&w=400'
-      }))
-    }
-
-    function demoHotels(city){
-      const names = ['Grand Plaza','Royal Regency','City Vista','Business Central','Premium Inn'];
-      const amenities = ['WiFi', 'Pool', 'Gym', 'Spa', 'Restaurant'];
-      return Array.from({length:6}).map((_,i)=>({
-        id: 'H' + Date.now() + i,
-        name: names[rand(0,names.length-1)],
-        city,
-        rating: (Math.random()*2+3).toFixed(1),
-        amenities: amenities.slice(0, rand(2,4)).join(', '),
-        amount: rand(2000,8000),
-        currency: currency(),
-        img: 'https://images.pexels.com/photos/271624/pexels-photo-271624.jpeg?auto=compress&cs=tinysrgb&w=400'
-      }))
-    }
-
-    function demoTrains(from,to){
-      const names = ['Duronto Exp','Rajdhani Exp','Shatabdi Exp','Tejas Exp','Vande Bharat'];
-      const classes = ['Sleeper','AC 3 Tier','AC 2 Tier','AC 1 Tier'];
-      return Array.from({length:6}).map((_,i)=>({
-        id: 'T' + Date.now() + i,
-        train_name: names[rand(0,names.length-1)],
-        from, to,
-        depart: new Date(Date.now()+rand(1,7)*86400000).toISOString(),
-        travel_time: rand(120,720)+'m',
-        class: classes[rand(0,classes.length-1)],
-        price: rand(800,4000),
-        currency: currency(),
-        img: 'https://images.pexels.com/photos/210182/pexels-photo-210182.jpeg?auto=compress&cs=tinysrgb&w=400'
-      }))
-    }
-
-    function demoApprovals(){
-      const types = ['Flight','Hotel','Train'];
-      const statuses = ['Pending','Approved','Rejected'];
-      const employees = ['Alice Smith','Bob Johnson','Charlie Brown','Diana Prince'];
-      return Array.from({length: rand(3,6)}).map((_,i)=>({
-        id: 'APR' + Date.now() + i,
-        type: types[rand(0,types.length-1)],
-        employee: employees[rand(0,employees.length-1)],
-        destination: ['London','New York','Paris','Tokyo','Dubai'][rand(0,4)],
-        amount: rand(5000,50000),
-        currency: currency(),
-        status: statuses[rand(0,statuses.length-1)],
-        requested_at: new Date(Date.now() - rand(1,7)*86400000).toISOString(),
-      }))
-    }
-
-    // ========================= API Calls (backend mode) =========================
-    async function apiCall(endpoint, method = 'GET', body = null){
-      const url = `${state.base}/${endpoint}`;
-      const options = {
-        method,
-        headers: authHeaders({ 'Content-Type': 'application/json' }),
-      };
-      if (body) options.body = JSON.stringify(body);
-
-      try {
-        const res = await fetch(url, options);
-        if (!res.ok) {
-          const errorText = await res.text();
-          throw new Error(`API Error: ${res.status} ${res.statusText} - ${errorText}`);
-        }
-        return res.json();
-      } catch (error) {
-        console.error('API call failed:', error);
-        toast(`API Error: ${error.message}`);
-        return null;
-      }
-    }
-
-    async function login(){
-      const em = document.getElementById('em').value;
-      const pw = document.getElementById('pw').value;
-      const statusDiv = document.getElementById('login-status');
-      statusDiv.textContent = 'Logging in...';
-      try {
-        const res = await apiCall('login', 'POST', {email: em, password: pw});
-        if(res && res.jwt && res.apikey){
-          state.jwt = res.jwt;
-          state.apikey = res.apikey;
-          try {
-            localStorage.setItem('jwt', res.jwt);
-            localStorage.setItem('apikey', res.apikey);
-          } catch(e) {
-            console.warn('Cannot save to localStorage');
-          }
-          document.getElementById('jwt').value = res.jwt;
-          document.getElementById('apikey').value = res.apikey;
-          statusDiv.textContent = 'Login successful!';
-          toast('Login successful!');
-          document.getElementById('login-modal').close();
-          fetchApprovals(); // Fetch approvals after successful login
-        } else {
-          statusDiv.textContent = 'Login failed. Please check credentials.';
-          toast('Login failed!');
-        }
-      } catch(e){
-        statusDiv.textContent = 'Login error. See console.';
-      }
-    }
-
-    function generateKey(){
-      const jwtVal = document.getElementById('jwt').value;
-      const apikeyVal = document.getElementById('apikey').value;
-      let curlCommand = `curl -X GET "${state.base}/flights" \\\n`;
-      if (jwtVal) {
-        curlCommand += `  -H "Authorization: Bearer ${jwtVal}" \\\n`;
-      }
-      if (apikeyVal) {
-        curlCommand += `  -H "X-API-Key: ${apikeyVal}"`;
-      } else if (!jwtVal) {
-        curlCommand += `  # No authentication headers. Might result in limited access.`;
-      }
-      document.getElementById('curl').textContent = curlCommand;
-    }
-
-    // ========================= Search & Display Functions =========================
-    async function searchFlights(){
-      setLoading('search-flights-btn', true);
-      const from = document.getElementById('f-from').value;
-      const to = document.getElementById('f-to').value;
-      const date = document.getElementById('f-date').value;
-      let results;
-
-      if(state.mode === 'demo'){
-        results = demoFlights(from,to);
-      } else {
-        const data = await apiCall(`flights?from=${from}&to=${to}&date=${date}`);
-        results = data ? data.flights : [];
-      }
-      displayResults('flights', results);
-      setLoading('search-flights-btn', false);
-    }
-
-    async function searchHotels(){
-      setLoading('search-hotels-btn', true);
-      const city = document.getElementById('h-city').value;
-      const checkin = document.getElementById('h-in').value;
-      const checkout = document.getElementById('h-out').value;
-      let results;
-
-      if(state.mode === 'demo'){
-        results = demoHotels(city);
-      } else {
-        const data = await apiCall(`hotels?city=${city}&checkin=${checkin}&checkout=${checkout}`);
-        results = data ? data.hotels : [];
-      }
-      displayResults('hotels', results);
-      setLoading('search-hotels-btn', false);
-    }
-
-    async function searchTrains(){
-      setLoading('search-trains-btn', true);
-      const from = document.getElementById('t-from').value;
-      const to = document.getElementById('t-to').value;
-      const date = document.getElementById('t-date').value;
-      let results;
-
-      if(state.mode === 'demo'){
-        results = demoTrains(from,to);
-      } else {
-        const data = await apiCall(`trains?from=${from}&to=${to}&date=${date}`);
-        results = data ? data.trains : [];
-      }
-      displayResults('trains', results);
-      setLoading('search-trains-btn', false);
-    }
-
-    async function fetchApprovals(){
-      let approvals;
-      if (state.mode === 'demo') {
-        approvals = demoApprovals();
-      } else {
-        const data = await apiCall('approvals');
-        approvals = data ? data.approvals : [];
-      }
-      displayApprovals(approvals);
-    }
-
-    function displayResults(type, items){
-      const resultsDiv = document.getElementById(`results-${type}`);
-      resultsDiv.innerHTML = '';
-      if(items.length === 0){
-        resultsDiv.innerHTML = '<p class="subtitle" style="text-align:center; padding:20px;">No results found.</p>';
-        return;
-      }
-
-      items.forEach(item => {
-        let content = '';
-        if(type === 'flights'){
-          content = `
-            <h3>${item.provider} (${item.aircraft})</h3>
-            <p>${item.from} to ${item.to}</p>
-            <p>Depart: ${new Date(item.depart).toLocaleDateString()} ${new Date(item.depart).toLocaleTimeString()}</p>
-            <p>Duration: ${item.duration}</p>
-            <p><strong>${item.currency} ${item.price}</strong></p>
-          `;
-        } else if (type === 'hotels'){
-          content = `
-            <h3>${item.name} (${item.city})</h3>
-            <p>Rating: ${item.rating} / 5</p>
-            <p>Amenities: ${item.amenities}</p>
-            <p><strong>${item.currency} ${item.amount} / night</strong></p>
-          `;
-        } else if (type === 'trains'){
-          content = `
-            <h3>${item.train_name}</h3>
-            <p>${item.from} to ${item.to}</p>
-            <p>Depart: ${new Date(item.depart).toLocaleDateString()} ${new Date(item.depart).toLocaleTimeString()}</p>
-            <p>Travel Time: ${item.travel_time}</p>
-            <p>Class: ${item.class}</p>
-            <p><strong>${item.currency} ${item.price}</strong></p>
-          `;
-        }
-        const itemDiv = document.createElement('div');
-        itemDiv.className = 'item';
-        itemDiv.innerHTML = content;
-        resultsDiv.appendChild(itemDiv);
-      });
-    }
-
-    function displayApprovals(approvals){
-      const approvalsDiv = document.getElementById('approvals');
-      approvalsDiv.innerHTML = '';
-      if (approvals.length === 0) {
-        approvalsDiv.innerHTML = '<p class="subtitle" style="text-align:center; padding:20px;">No pending approvals.</p>';
-        return;
-      }
-
-      approvals.forEach(approval => {
-        const itemDiv = document.createElement('div');
-        itemDiv.className = 'item';
-        let statusColor = '';
-        if (approval.status === 'Approved') {
-          statusColor = 'var(--success)';
-        } else if (approval.status === 'Rejected') {
-          statusColor = 'var(--danger)';
-        } else {
-          statusColor = 'var(--accent)';
-        }
-
-        itemDiv.innerHTML = `
-          <h3>${approval.type} Request - ${approval.employee}</h3>
-          <p>Destination: ${approval.destination}</p>
-          <p>Amount: ${approval.currency} ${approval.amount}</p>
-          <p>Status: <strong style="color: ${statusColor};">${approval.status}</strong></p>
-          <p>Requested: ${new Date(approval.requested_at).toLocaleString()}</p>
-        `;
-        approvalsDiv.appendChild(itemDiv);
-      });
-    }
-
-    // Initial calls
-    document.addEventListener('DOMContentLoaded', () => {
-      openTab('flights'); // Open flights tab by default
-      generateKey(); // Generate initial cURL command
-      fetchApprovals(); // Fetch approvals on page load
-    });
-  </script>
-</body>
-</html>
+        
